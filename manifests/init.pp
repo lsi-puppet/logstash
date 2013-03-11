@@ -78,17 +78,20 @@
 # * Richard Pijnenburg <mailto:richard@ispavailability.com>
 #
 class logstash(
-  $ensure       = $logstash::params::ensure,
-  $autoupgrade  = $logstash::params::autoupgrade,
-  $status       = $logstash::params::status,
-  $version      = false,
-  $provider     = 'package',
-  $jarfile      = undef,
-  $initfile     = undef,
-  $defaultsfile = undef,
-  $installpath  = undef,
-  $java_install = false,
-  $java_package = undef
+  $ensure        = $logstash::params::ensure,
+  $autoupgrade   = $logstash::params::autoupgrade,
+  $status        = $logstash::params::status,
+  $version       = false,
+  $provider      = 'package',
+  $jarfile       = undef,
+  $installpath   = $logstash::params::installpath,
+  $java_install  = false,
+  $java_package  = undef,
+  $instances     = [ 'agent' ],
+  $initfiles     = undef,
+  $defaultsfiles = undef,
+  $defaults_file = undef,
+  $initfile      = undef
 ) inherits logstash::params {
 
   #### Validate parameters
@@ -106,7 +109,14 @@ class logstash(
     fail("\"${status}\" is not a valid status parameter value")
   }
 
+  #### Deprecation notices
+  if $defaults_file {
+    fail('The variable \"defaults_file\" has been deprecated. Please use the "defaultsfiles" hash variable')
+  }
 
+  if $initfile {
+    fail('The variable "initfile" has been deprecated. Please use the "initfiles" hash variable')
+  }
 
   #### Manage actions
 
@@ -122,6 +132,9 @@ class logstash(
   if $java_install == true {
     # Install java
     class { 'logstash::java': }
+
+    # ensure we first java java and then manage the service
+    Class['logstash::java'] -> Class['logstash::service']
   }
 
 
