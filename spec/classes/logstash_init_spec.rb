@@ -18,10 +18,9 @@ describe 'logstash', :type => 'class' do
       it { should contain_package('logstash') }
 
       # service.pp
-      it { should contain_service('logstash-agent') }
-      it { should contain_file('/etc/init.d/logstash-agent') }
-      it { should contain_service('logstash').with(:enable => false, :ensure => 'stopped') }
-      it { should contain_file('/etc/init.d/logstash').with(:ensure => 'absent') }
+      it { should contain_service('logstash') }
+      it { should_not contain_file('/etc/init.d/logstash') }
+
     end
 
     context "On Ubuntu OS" do
@@ -38,10 +37,8 @@ describe 'logstash', :type => 'class' do
       it { should contain_package('logstash') }
 
       # service.pp
-      it { should contain_service('logstash-agent') }
-      it { should contain_file('/etc/init.d/logstash-agent') }
-      it { should contain_service('logstash').with(:enable => false, :ensure => 'stopped') }
-      it { should contain_file('/etc/init.d/logstash').with(:ensure => 'absent') }
+      it { should contain_service('logstash') }
+      it { should_not contain_file('/etc/init.d/logstash') }
 
     end
 
@@ -59,10 +56,8 @@ describe 'logstash', :type => 'class' do
       it { should contain_package('logstash') }
 
       # service.pp
-      it { should contain_service('logstash-agent') }
-      it { should contain_file('/etc/init.d/logstash-agent') }
-      it { should contain_service('logstash').with(:enable => false, :ensure => 'stopped') }
-      it { should contain_file('/etc/init.d/logstash').with(:ensure => 'absent') }
+      it { should contain_service('logstash') }
+      it { should_not contain_file('/etc/init.d/logstash') }
 
     end
 
@@ -80,10 +75,8 @@ describe 'logstash', :type => 'class' do
       it { should contain_package('logstash') }
 
       # service.pp
-      it { should contain_service('logstash-agent') }
-      it { should contain_file('/etc/init.d/logstash-agent') }
-      it { should contain_service('logstash').with(:enable => false, :ensure => 'stopped') }
-      it { should contain_file('/etc/init.d/logstash').with(:ensure => 'absent') }
+      it { should contain_service('logstash') }
+      it { should_not contain_file('/etc/init.d/logstash') }
 
     end
 
@@ -101,10 +94,8 @@ describe 'logstash', :type => 'class' do
       it { should contain_package('logstash') }
 
       # service.pp
-      it { should contain_service('logstash-agent') }
-      it { should contain_file('/etc/init.d/logstash-agent') }
-      it { should contain_service('logstash').with(:enable => false, :ensure => 'stopped') }
-      it { should contain_file('/etc/init.d/logstash').with(:ensure => 'absent') }
+      it { should contain_service('logstash') }
+      it { should_not contain_file('/etc/init.d/logstash') }
 
     end
 
@@ -122,10 +113,8 @@ describe 'logstash', :type => 'class' do
       it { should contain_package('logstash') }
 
       # service.pp
-      it { should contain_service('logstash-agent') }
-      it { should contain_file('/etc/init.d/logstash-agent') }
-      it { should contain_service('logstash').with(:enable => false, :ensure => 'stopped') }
-      it { should contain_file('/etc/init.d/logstash').with(:ensure => 'absent') }
+      it { should contain_service('logstash') }
+      it { should_not contain_file('/etc/init.d/logstash') }
 
     end
 
@@ -143,11 +132,9 @@ describe 'logstash', :type => 'class' do
       it { should contain_package('logstash') }
 
       # service.pp
-      it { should contain_service('logstash-agent') }
-      it { should contain_file('/etc/init.d/logstash-agent') }
-      it { should contain_service('logstash').with(:enable => false, :ensure => 'stopped') }
-      it { should contain_file('/etc/init.d/logstash').with(:ensure => 'absent') }
-  
+      it { should contain_service('logstash') }
+      it { should_not contain_file('/etc/init.d/logstash') }
+   
     end
 
     context "On an unknown OS" do
@@ -165,7 +152,7 @@ describe 'logstash', :type => 'class' do
       } end
 
       let :params do {
-        :initfiles => { 'agent' => 'puppet:///path/to/init' }
+        :initfile => 'puppet:///path/to/init'
       } end
 
       # init.pp
@@ -177,8 +164,8 @@ describe 'logstash', :type => 'class' do
       it { should contain_package('logstash') }
 
       # service.pp
-      it { should contain_service('logstash-agent') }
-      it { should contain_file('/etc/init.d/logstash-agent').with(
+      it { should contain_service('logstash') }
+      it { should contain_file('/etc/init.d/logstash').with(
         :source => 'puppet:///path/to/init',
         :content => nil
       ) }
@@ -200,8 +187,8 @@ describe 'logstash', :type => 'class' do
       } end
 
       it { should_not contain_package('logstash') }
-      it { should contain_file('/etc/init.d/logstash-agent').with(:source => nil) }
-      it { should contain_service('logstash-agent') }
+      it { should contain_file('/etc/init.d/logstash').with(:source => nil) }
+      it { should contain_service('logstash') }
 
     end
 
@@ -213,18 +200,32 @@ describe 'logstash', :type => 'class' do
 
       let :params do {
         :provider => 'custom',
-        :jarfile => 'puppet:///path/to/logstash-1.1.9.jar',
+        :jarfile => "puppet:///path/to/logstash-1.1.9.jar",
         :installpath => '/opt/logstash',
-        :initfiles => { 'agent' => 'puppet:///path/to/logstash.init' }
+        :initfile => "puppet:///path/to/logstash.init"
       } end
 
       it { should_not contain_package('logstash') }
-      it { should contain_file('/etc/init.d/logstash-agent').with(
+      it { should contain_file('/etc/init.d/logstash').with(
         :source => 'puppet:///path/to/logstash.init')
       }
-      it { should contain_service('logstash-agent') }
+      it { should contain_service('logstash') }
 
     end
+  end
+
+  context "without service management" do
+
+    let :facts do {
+      :operatingsystem => 'CentOS'
+    } end
+
+    let :params do {
+      :status => 'unmanaged'
+    } end
+
+    it { should_not contain_servce('logstash') }
+
   end
 
   context "Do not manage the service" do
@@ -239,7 +240,7 @@ describe 'logstash', :type => 'class' do
         :status => 'unmanaged'
       } end
 
-      it { should contain_service('logstash').with(:enable => false, :ensure => 'stopped') }
+      it { should contain_service('logstash') }
 
    end
 
@@ -259,73 +260,8 @@ describe 'logstash', :type => 'class' do
      it { should_not contain_package('logstash') }
      it { should_not contain_file('/etc/init.d/logstash') }
      it { should_not contain_service('logstash') }
-     it { should_not contain_file('/etc/init.d/logstash-agent') }
-     it { should_not contain_service('logstash-agent') }
 
     end
-  end
-
-  context "multi-instance tests ( agent and indexer )" do
-
-    let :facts do {
-      :operatingsystem => 'CentOS'
-    } end
-
-    context "Nothing extra" do
-
-      let :params do {
-        :instances => [ 'agent', 'indexer' ]
-      } end
-
-      it { should contain_service('logstash-agent') }
-      it { should contain_service('logstash-indexer') }
-
-      it { should contain_file('/etc/init.d/logstash-agent') }
-      it { should contain_file('/etc/init.d/logstash-indexer') }
-
-      it { should contain_file('/etc/logstash/agent/config') }
-      it { should contain_file('/etc/logstash/indexer/config') }
-
-    end
-
-    context "with separate defaults files" do
-    
-      let :params do {
-        :instances => [ 'agent', 'indexer' ],
-        :defaultsfiles => { 'agent' => 'puppet:///path/to/agent-defaults', 'indexer' => 'puppet:///path/to/indexer-defaults' }
-      } end
-
-      it { should contain_service('logstash-agent') }
-      it { should contain_service('logstash-indexer') }
-
-      it { should contain_file('/etc/init.d/logstash-agent').with(:source => nil) }
-      it { should contain_file('/etc/init.d/logstash-indexer').with(:soruce => nil) }
-
-      it { should contain_file('/etc/sysconfig/logstash-agent').with(:source => 'puppet:///path/to/agent-defaults') }
-      it { should contain_file('/etc/sysconfig/logstash-indexer').with(:source => 'puppet:///path/to/indexer-defaults') }
-
-      it { should contain_file('/etc/logstash/agent/config') }
-      it { should contain_file('/etc/logstash/indexer/config') }
-
-    end
-
-    context "with separate init files" do
-      let :params do {
-        :instances => [ 'agent', 'indexer' ],
-        :initfiles => { 'agent' => 'puppet:///path/to/agent-init', 'indexer' => 'puppet:///path/to/indexer-init' }
-      } end
-
-      it { should contain_service('logstash-agent') }
-      it { should contain_service('logstash-indexer') }
-
-      it { should contain_file('/etc/init.d/logstash-agent').with(:source => 'puppet:///path/to/agent-init') }
-      it { should contain_file('/etc/init.d/logstash-indexer').with(:source => 'puppet:///path/to/indexer-init') }
- 
-      it { should contain_file('/etc/logstash/agent/config') }
-      it { should contain_file('/etc/logstash/indexer/config') }
-
-   end
-
   end
 
   context "install java" do

@@ -45,7 +45,7 @@ class logstash::params {
   #### Defaults for other files
 
   # Config directory
-  $configdir = '/etc/logstash'
+  $configdir = '/etc/logstash/conf.d'
 
   # Logging dir
   $logdir = '/var/log/logstash/'
@@ -54,15 +54,13 @@ class logstash::params {
 
   # packages
   case $::operatingsystem {
-    'RedHat', 'CentOS', 'Fedora', 'Scientific', 'RedHat', 'Amazon': {
+    'RedHat', 'CentOS', 'Fedora', 'Scientific', 'Amazon': {
       # main application
-      $package     = [ 'logstash' ]
-      $installpath = '/usr/share/logstash'
+      $package = [ 'logstash' ]
     }
     'Debian', 'Ubuntu': {
       # main application
-      $package     = [ 'logstash' ]
-      $installpath = '/var/lib/logstash'
+      $package = [ 'logstash' ]
     }
     default: {
       fail("\"${module_name}\" provides no package default value
@@ -72,7 +70,7 @@ class logstash::params {
 
   # service parameters
   case $::operatingsystem {
-    'RedHat', 'CentOS', 'Fedora', 'Scientific', 'RedHat', 'Amazon': {
+    'RedHat', 'CentOS', 'Fedora', 'Scientific', 'Amazon': {
       $service_name       = 'logstash'
       $service_hasrestart = true
       $service_hasstatus  = true
