@@ -109,11 +109,14 @@ class logstash::service {
 
     if $logstash::initfile != undef or $initscript != '' {
 
-      file { '/etc/init.d/logstash':
-        ensure  => present,
-        mode    => '0755',
-        content => $initscript,         # undef when using an external source, otherwise content of our own init script
-        source  => $logstash::initfile, # undef when using content of our own init script, otherwise it contains the source of the external init script
+      file {
+        '/etc/init.d/logstash':
+          ensure  => present,
+          mode    => '0755',
+          content => $initscript,         # undef when using an external source, otherwise content of our own init script
+          source  => $logstash::initfile; # undef when using content of our own init script, otherwise it contains the source of the external init script
+        '/var/lib/logstash':              # create the sincedb directory referenced in the init script
+          ensure => 'directory'
       }
     }
   }
