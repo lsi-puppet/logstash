@@ -54,7 +54,7 @@ class logstash::params {
 
   # packages
   case $::operatingsystem {
-    'RedHat', 'CentOS', 'Fedora', 'Scientific', 'Amazon': {
+    'RedHat', 'CentOS', 'Fedora', 'Scientific', 'Amazon', 'SLES', 'OracleLinux': {
       # main application
       $package = [ 'logstash' ]
     }
@@ -70,7 +70,7 @@ class logstash::params {
 
   # service parameters
   case $::operatingsystem {
-    'RedHat', 'CentOS', 'Fedora', 'Scientific', 'Amazon': {
+    'RedHat', 'CentOS', 'Fedora', 'Scientific', 'Amazon', 'SLES', 'OracleLinux': {
       $service_name       = 'logstash'
       $service_hasrestart = true
       $service_hasstatus  = true
