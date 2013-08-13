@@ -119,7 +119,7 @@ class logstash::service {
         $configdir = "${logstash::configdir}/conf.d"
 
         case $::operatingsystem {
-          'RedHat', 'CentOS', 'Fedora', 'Scientific', 'Amazon': {
+          'RedHat', 'CentOS', 'Fedora', 'Scientific', 'Amazon', 'OracleLinux', 'OEL': {
             $initscript = template("${module_name}/etc/init.d/logstash.init.RedHat.erb")
           }
           'Debian', 'Ubuntu': {
