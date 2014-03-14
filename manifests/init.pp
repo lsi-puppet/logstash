@@ -50,6 +50,15 @@
 #   String to set the specific version you want to install.
 #   Defaults to <tt>false</tt>.
 #
+# [*restart_on_change*]
+#   Boolean that determines if the application should be automatically restarted
+#   whenever the configuration changes. Disabling automatic restarts on config
+#   changes may be desired in an environment where you need to ensure restarts
+#   occur in a controlled/rolling manner rather than during a Puppet run.
+#
+#   Defaults to <tt>true</tt>, which will restart the application on any config
+#   change. Setting to <tt>false</tt> disables the automatic restart.
+#
 # The default values for the parameters are set in logstash::params. Have
 # a look at the corresponding <tt>params.pp</tt> manifest file if you need more
 # technical information about them.
@@ -73,24 +82,31 @@
 #
 # === Authors
 #
-# * Richard Pijnenburg <mailto:richard@ispavailability.com>
+# * Richard Pijnenburg <mailto:richard.pijnenburg@elasticsearch.com>
 #
 class logstash(
-  $ensure         = $logstash::params::ensure,
-  $autoupgrade    = $logstash::params::autoupgrade,
-  $status         = $logstash::params::status,
-  $version        = false,
-  $provider       = 'package',
-  $jarfile        = undef,
-  $installpath    = $logstash::params::installpath,
-  $java_install   = false,
-  $java_package   = undef,
-  $instances      = [ 'agent' ],
-  $multi_instance = true,
-  $initfiles      = undef,
-  $defaultsfiles  = undef,
-  $logstash_user  = $logstash::params::logstash_user,
-  $logstash_group = $logstash::params::logstash_group
+  $ensure              = $logstash::params::ensure,
+  $status              = $logstash::params::status,
+  $restart_on_change   = $logstash::params::restart_on_change,
+  $autoupgrade         = $logstash::params::autoupgrade,
+  $version             = false,
+  $software_provider   = 'package',
+  $package_url         = undef,
+  $package_dir         = $logstash::params::package_dir,
+  $purge_package_dir   = $logstash::params::purge_package_dir,
+  $package_dl_timeout  = $logstash::params::package_dl_timeout,
+  $logstash_user       = $logstash::params::logstash_user,
+  $logstash_group      = $logstash::params::logstash_group,
+  $configdir           = $logstash::params::configdir,
+  $purge_configdir     = $logstash::params::purge_configdir,
+  $java_install        = false,
+  $java_package        = undef,
+  $service_provider    = 'init',
+  $init_defaults       = undef,
+  $init_defaults_file  = undef,
+  $init_template       = undef,
+  $manage_repo         = false,
+  $repo_version        = false,
 ) inherits logstash::params {
 
   anchor {'logstash::begin': }
@@ -106,25 +122,34 @@ class logstash(
   # autoupgrade
   validate_bool($autoupgrade)
 
+  # package download timeout
+  if ! is_integer($package_dl_timeout) {
+    fail("\"${package_dl_timeout}\" is not a valid number for 'package_dl_timeout' parameter")
+  }
+
   # service status
   if ! ($status in [ 'enabled', 'disabled', 'running', 'unmanaged' ]) {
     fail("\"${status}\" is not a valid status parameter value")
   }
 
-  if $initfiles {
-    if $multi_instance == true {
-      validate_hash($initfiles)
-    } else {
-      validate_string($initfiles)
-    }
+  # restart on change
+  validate_bool($restart_on_change)
+
+  # purge conf dir
+  validate_bool($purge_configdir)
+
+  if ! ($service_provider in $logstash::params::service_providers) {
+    fail("\"${service_provider}\" is not a valid provider for \"${::operatingsystem}\"")
   }
 
-  if $defaultsfiles {
-    if $multi_instance == true {
-      validate_hash($defaultsfiles)
-    } else {
-      validate_string($defaultsfiles)
-    }
+  if ($package_url != undef and $version != false) {
+    fail('Unable to set the version number when using package_url option.')
+  }
+
+  validate_bool($manage_repo)
+
+  if ($manage_repo == true) {
+    validate_string($repo_version)
   }
 
   #### Manage actions
@@ -142,15 +167,27 @@ class logstash(
     # Install java
     class { 'logstash::java': }
 
-    # ensure we first java java and then manage the service
+    # ensure we first install java and then manage the service
     Anchor['logstash::begin']
     -> Class['logstash::java']
-    -> Class['logstash::service']
+    -> Class['logstash::package']
+  }
+
+  if ($manage_repo == true) {
+    # Set up repositories
+    class { 'logstash::repo': }
+
+    # Ensure that we set up the repositories before trying to install
+    # the packages
+    Anchor['logstash::begin']
+    -> Class['logstash::repo']
+    -> Class['logstash::package']
   }
 
   #### Manage relationships
 
   if $ensure == 'present' {
+
     # we need the software before configuring it
     Anchor['logstash::begin']
     -> Class['logstash::package']
@@ -169,5 +206,7 @@ class logstash(
     -> Class['logstash::service']
     -> Class['logstash::package']
     -> Anchor['logstash::end']
+
   }
+
 }
